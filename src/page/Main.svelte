@@ -15,6 +15,10 @@
     });
 </script>
 
+<svelte:head>
+    <title>GGM Club</title>
+</svelte:head>
+
 <main>
     <div id="event-info">
         <p class="sub-text">진행중인 이벤트</p>

@@ -15,13 +15,12 @@
         text-align: center;
         justify-content: center;
         font-weight: 200;
-        font-size: 12px;
-        background: #1f1f1f;
         color: #b4b4b4;
     }
 
     p {
         margin: 5px;
+        font-size: 12px;
     }
 
     .contact {
