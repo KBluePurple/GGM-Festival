@@ -1,11 +1,28 @@
 <script lang="ts">
     import QRCode from 'qrcode';
     import {onMount} from "svelte";
+    import type {EventData, RankingEntry} from "../data/data";
+    import client from "../util/client";
+    import {Modal, ToastNotification} from "carbon-components-svelte";
 
-    onMount(() => {
+    let event: EventData | undefined = undefined;
+    let ranking: RankingEntry[] = [];
+
+    let isEventModalOpen = false;
+    let isRankingModalOpen = false;
+
+    async function loadData() {
+        let response = await client.get('eventData.json');
+        event = response.data;
+
+        response = await client.get('rankingData.json');
+        ranking = response.data;
+    }
+
+    onMount(async () => {
         const canvas = document.getElementById('qrcode');
-        QRCode.toCanvas(canvas, 'Token Value: 9834y938hgbv987y5gb932q87bv73876rtgv5g', {
-            width: 100,
+        await QRCode.toCanvas(canvas, 'asd', {
+            width: 150,
             margin: 2,
             color: {
                 dark: '#1f1f1f',
@@ -13,6 +30,18 @@
             }
         });
     });
+
+    async function openRankingModal() {
+        await loadData();
+        isRankingModalOpen = true;
+    }
+
+    async function openEventModal() {
+        await loadData();
+        isEventModalOpen = true;
+    }
+
+    loadData();
 </script>
 
 <svelte:head>
@@ -20,53 +49,80 @@
 </svelte:head>
 
 <main>
-    <div id="event-info">
-        <p class="sub-text">진행중인 이벤트</p>
-        <p>팔씨름 대회</p>
-        <img src="https://thumb.mtstarnews.com/06/2020/03/2020031011093864009_1.jpg/dims/optimize" alt="boxing-glove"
-             width="100" height="100">
-    </div>
-    <div id="ranking">
-        <p class="sub-text">실시간 랭킹</p>
-        <table id="ranking-table">
-            <tr>
-                <th>순위</th>
-                <th>이름</th>
-                <th>GM Token</th>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td>김철수</td>
-                <td>100</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>이영희</td>
-                <td>99</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>박철수</td>
-                <td>98</td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td>최영희</td>
-                <td>97</td>
-            </tr>
-            <tr>
-                <td>5</td>
-                <td>홍길동</td>
-                <td>96</td>
-            </tr>
-        </table>
-        <div id="hider"></div>
-    </div>
+    {#if event}
+        <div id="event-info" on:click={openEventModal}>
+            <p class="sub-text">진행중인 이벤트</p>
+            <p>{event.name}</p>
+            <img src={event.image} alt="boxing-glove"
+                 width="100" height="100">
+        </div>
+
+        <Modal passiveModal
+               bind:open={isEventModalOpen}
+               modalHeading={event.name}
+        >
+            <div class="event-modal">
+                <img src={event.image} alt="boxing-glove"
+                     width="100" height="100">
+                <p>{event.description}</p>
+            </div>
+        </Modal>
+    {/if}
+
+    {#if ranking && ranking.length > 0}
+        <div id="ranking" on:click={openRankingModal}>
+            <p class="sub-text">실시간 랭킹</p>
+            <table class="ranking-table">
+                <tr>
+                    <th>순위</th>
+                    <th>이름</th>
+                    <th>GM Token</th>
+                </tr>
+                {#each ranking.slice(0, 5) as entry, index}
+                    <tr>
+                        <td>{entry.rank}</td>
+                        <td>{entry.name}</td>
+                        <td>{entry.tokens}</td>
+                    </tr>
+                {/each}
+            </table>
+            <div id="hider"></div>
+        </div>
+        <Modal passiveModal
+               bind:open={isRankingModalOpen}
+               modalHeading="실시간 랭킹"
+        >
+            <div class="ranking-modal">
+                <table class="ranking-table">
+                    <tr>
+                        <th>순위</th>
+                        <th>이름</th>
+                        <th>GM Token</th>
+                    </tr>
+                    {#each ranking as entry, index}
+                        <tr>
+                            <td>{entry.rank}</td>
+                            <td>{entry.name}</td>
+                            <td>{entry.tokens}</td>
+                        </tr>
+                    {/each}
+                </table>
+            </div>
+        </Modal>
+    {/if}
     <div id="token-container">
         <p class="sub-text">다방면 활용이 가능한</p>
         <p>GM Token 잔액</p>
         <p id="token">100 T</p>
         <canvas id="qrcode"></canvas>
+    </div>
+
+    <div class="absolute bottom-0 right-0">
+        <ToastNotification
+                kind="info"
+                title="결제 성공"
+                subtitle="100 T 결제가 성공적으로 완료되었습니다."
+        />
     </div>
 </main>
 
@@ -117,16 +173,16 @@
         margin-top: 50px;
     }
 
-    #ranking-table {
+    .ranking-table {
         border-collapse: collapse;
         min-width: 300px;
         margin-top: 10px;
     }
 
-    #ranking-table th, #ranking-table td {
+    .ranking-table th, .ranking-table td {
         border-top: 1px solid #494949;
         border-bottom: 1px solid #494949;
-        text-align: left;
+        text-align: center;
         padding: 5px;
         font-size: 13px;
     }
@@ -137,7 +193,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, #1a1a1a 100%);
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, #161616 100%);
     }
 
     p {

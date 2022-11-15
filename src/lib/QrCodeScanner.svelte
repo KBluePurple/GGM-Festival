@@ -1,85 +1,57 @@
 <script lang="ts">
-    import QrScanner from 'qr-scanner';
     import {onMount} from "svelte"
+    import {Html5Qrcode, Html5QrcodeScanner} from "html5-qrcode";
 
-    export let onScan: (result: string) => void;
-    let data: string = "";
+    export let onScan: (result: string) => void
+    export const qrCodeScanner = {
+        start: () => {
+        },
+        stop: () => {
+        }
+    }
 
     onMount(async () => {
-        const video = document.getElementById('qr-video') as HTMLVideoElement;
-        const customDiv = document.getElementById('qr-custom') as HTMLDivElement;
+        let cameraId = 0;
+        const cameras = await Html5Qrcode.getCameras();
 
-        const qrScanner = new QrScanner(video, (result: QrScanner.ScanResult) => onScanEvent(result), {
-            fps: 60,
-            contrast: 0.5,
-            brightness: 0.5,
-            autoBrightnessValue: false,
-            highlightScanRegion: true,
-            maxScansPerSecond: 1,
-            overlay: customDiv
-        });
-
-        function onScanEvent(result: QrScanner.ScanResult) {
-            qrScanner.stop();
-            onScan(result.data);
-        }
-
-        const cameras = await QrScanner.listCameras();
-
-        let cameraId: string | undefined = undefined;
-
-        cameras.find((camera) => {
-            if (camera.label.includes('back')) {
-                cameraId = camera.id;
-                return true;
+        cameras.forEach((camera, index) => {
+            if (camera.label.includes("back")) {
+                cameraId = index;
             }
         });
 
-        await qrScanner.setCamera(cameraId ?? cameras[0].id);
-        await qrScanner.start()
+        let html5Qrcode = new Html5Qrcode("qr-reader");
 
-        onScan = (result: string) => {
-            data = result;
-            video.style.opacity = "0";
+        async function onScanSuccess(qrCodeMessage: string) {
+            onScan(qrCodeMessage)
+        }
+
+        qrCodeScanner.start = async () => {
+            await html5Qrcode.start(
+                cameras[cameraId].id,
+                {fps: 10, qrbox: 200},
+                qrCode => onScanSuccess(qrCode),
+                () => {}
+            );
+        }
+
+        qrCodeScanner.stop = async () => {
+            await html5Qrcode.stop();
         }
 
         return () => {
-            qrScanner.stop();
+            html5Qrcode.stop();
         }
     });
 </script>
 
 <main>
-    <video id="qr-video" width="350" height="350"></video>
-    <div id="qr-custom"></div>
-    <p>{data}</p>
+    <div id="qr-reader" class="mt-5"></div>
 </main>
 
 <style>
-    main {
-        display: flex;
-        position: relative;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-
-    #qr-video {
-        margin-top: 100px;
-        object-fit: cover;
-        object-position: center;
-        transition: all 0.5s;
-    }
-
-    #qr-custom {
-        position: absolute;
-        top: 0;
-        left: 0;
+    #qr-reader {
         width: 100%;
         height: 100%;
-        outline: #ffffff dotted 2px;
-        mix-blend-mode: difference;
-        background-blend-mode: revert;
-        border-radius: 10px;
     }
 </style>

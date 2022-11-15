@@ -2,14 +2,15 @@
     import Header from "./lib/Header.svelte";
     import Footer from "./lib/Footer.svelte";
     import Manager from "./page/Manager.svelte";
+    import Main from "./page/Main.svelte";
 </script>
 
 <main>
-    <Header />
+    <Header/>
     <div class="container">
-        <Manager />
+        <Manager/>
     </div>
-    <Footer />
+    <Footer/>
 </main>
 
 <style>
