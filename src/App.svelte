@@ -8,7 +8,7 @@
 <main>
     <Header/>
     <div class="container">
-        <Manager/>
+        <Main/>
     </div>
     <Footer/>
 </main>

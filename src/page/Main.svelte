@@ -92,7 +92,7 @@
                bind:open={isRankingModalOpen}
                modalHeading="실시간 랭킹"
         >
-            <div class="ranking-modal">
+            <div class="ranking-modal flex justify-center">
                 <table class="ranking-table">
                     <tr>
                         <th>순위</th>
@@ -117,7 +117,7 @@
         <canvas id="qrcode"></canvas>
     </div>
 
-    <div class="absolute bottom-0 right-0">
+    <div class="absolute bottom-0 right-0 z-50">
         <ToastNotification
                 kind="info"
                 title="결제 성공"
