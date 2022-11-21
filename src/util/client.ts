@@ -1,9 +1,7 @@
 import axios, { type AxiosRequestConfig } from "axios";
 
-const { CF_PAGES_URL } = process.env;
-
 const axiosConfig: AxiosRequestConfig = {
-    baseURL: CF_PAGES_URL,
+    baseURL: "https://ggm-festival.pages.dev/",
     timeout: 1000,
     headers: {
         "Content-Type": "application/json",
