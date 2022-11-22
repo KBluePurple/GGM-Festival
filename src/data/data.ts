@@ -14,17 +14,18 @@ export interface EventData {
     name: string
     description: string
     image: string
+    period: string
 }
 
 export interface RankingEntry {
     rank: string
     name: string
-    tokens: number
+    coins: number
 }
 
 export class Data {
     public static async getProducts(): Promise<Products> {
-        const response = await client.get("/productData.json");
+        const response = await client.get("/products");
         return response.data;
     }
 }

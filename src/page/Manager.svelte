@@ -1,18 +1,32 @@
 <script lang="ts">
-    import {ContentSwitcher, Modal, RadioTile, Switch, TextArea, TileGroup} from "carbon-components-svelte";
-    import {NumberInput} from "carbon-components-svelte";
-    import IoIosReturnRight from 'svelte-icons/io/IoIosReturnRight.svelte'
-    import IoIosReturnLeft from 'svelte-icons/io/IoIosReturnLeft.svelte'
-    import type {Products} from "../data/data";
-    import {Data} from "../data/data";
+    import {
+        ContentSwitcher,
+        Modal,
+        NumberInput,
+        RadioTile,
+        Switch,
+        TextArea,
+        TileGroup
+    } from "carbon-components-svelte";
+    import IoIosReturnRight from "svelte-icons/io/IoIosReturnRight.svelte";
+    import IoIosReturnLeft from "svelte-icons/io/IoIosReturnLeft.svelte";
+    import type { Products } from "../data/data";
+    import { Data } from "../data/data";
     import QrCodeScanner from "../lib/QrCodeScanner.svelte";
+    import client from "../util/client";
+    import { toast } from "@zerodevx/svelte-toast";
 
     let selectedIndex = 0;
     let selected = 0;
 
-    let isQrModalOpened = false
+    let customAmount = 100;
+    let customReason = "";
+
+    let isQrModalOpened = false;
 
     let qrCodeScanner: QrCodeScanner;
+
+    let userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
     let onOpen = () => {
         qrCodeScanner.start();
@@ -32,15 +46,99 @@
 
     let products: Products | undefined = undefined;
 
-    async function getProducts() {
-        products = await Data.getProducts();
+    async function loadData() {
+        try {
+            if (!localStorage.getItem("userInfo")) {
+                window.location.href = "#/login";
+                let registerInfo = await client.post("/register", {username: "test"});
+                localStorage.setItem("userInfo", JSON.stringify(registerInfo.data));
+            }
+
+            products = await Data.getProducts();
+        } catch (e) {
+            localStorage.removeItem("token");
+            window.location.href = "#/login";
+        }
     }
 
     async function provisionToken() {
         openQrModal();
     }
 
-    getProducts();
+    async function takeToken(scanResult: string) {
+        qrCodeScanner.pause();
+        try {
+            const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+
+            if (selectedIndex === 0) {
+                let amount = 0;
+                let reason = "";
+
+                if (selected !== products.buy.length) {
+                    amount = products.buy[selected].price;
+                    reason = products.buy[selected].name;
+                }
+                else {
+                    amount = customAmount;
+                    reason = customReason;
+                }
+
+                await client.post("/give", {
+                    token: userInfo.token,
+                    uuid: scanResult,
+                    coins: amount,
+                    reason
+                });
+
+                toast.push("토큰 지급 성공", {
+                    theme: {
+                        '--toastColor': 'mintcream',
+                        '--toastBackground': 'rgba(72,187,120,0.9)',
+                        '--toastBarBackground': '#2F855A'
+                    }
+                });
+            } else {
+                let amount = 0;
+                let reason = "";
+
+                if (selected !== products.sell.length) {
+                    amount = products.sell[selected].price;
+                    reason = products.sell[selected].name;
+                }
+                else {
+                    amount = customAmount;
+                    reason = customReason;
+                }
+
+                await client.post("/take", {
+                    token: userInfo.token,
+                    uuid: scanResult,
+                    coins: amount,
+                    reason
+                });
+
+                toast.push("토큰 회수 성공", {
+                    theme: {
+                        '--toastColor': 'mintcream',
+                        '--toastBackground': 'rgba(72,187,120,0.9)',
+                        '--toastBarBackground': '#2F855A'
+                    }
+                });
+            }
+        }
+        catch (e) {
+            toast.push(e.message, {
+                theme: {
+                    '--toastBackground': 'rgba(255, 0, 0, 0.8)',
+                    '--toastColor': 'white',
+                    '--toastBarBackground': 'rgba(255, 0, 0, 0.8)',
+                }
+            });
+        }
+        closeQrModal();
+    }
+
+    loadData();
 </script>
 
 <svelte:head>
@@ -50,14 +148,14 @@
 <main>
     <div class="flex items-center pb-5">
         <h3 class="flex-1">관리자 페이지</h3>
-        <p class="text-sm flex-1 p-0 text-end">이름: 유원석</p>
+        <p class="text-sm flex-1 p-0 text-end">이름: {userInfo.username}</p>
     </div>
     <div id="switcher">
         <ContentSwitcher bind:selectedIndex>
             <Switch>
                 <div style="display: flex; align-items: center;">
                     <div class="icon">
-                        <IoIosReturnRight/>
+                        <IoIosReturnRight />
                     </div>
                     지급
                 </div>
@@ -65,7 +163,7 @@
             <Switch>
                 <div style="display: flex; align-items: center;">
                     <div class="icon">
-                        <IoIosReturnLeft/>
+                        <IoIosReturnLeft />
                     </div>
                     회수
                 </div>
@@ -84,8 +182,8 @@
             </TileGroup>
             {#if selected === products.buy.length}
                 <div class="mb-5">
-                    <NumberInput hideSteppers label="토큰 수" value={100} class="mb-5"/>
-                    <TextArea label="사유" placeholder="사유를 입력하세요" class="mb-5"/>
+                    <NumberInput hideSteppers label="토큰 수" bind:value={customAmount} class="mb-5" />
+                    <TextArea label="사유" placeholder="사유를 입력하세요" bind:value={customReason} class="mb-5" />
                 </div>
             {/if}
         {/if}
@@ -99,8 +197,12 @@
                secondaryButtonText="취소"
                size="sm"
         >
-            <p>토큰을 지급 할 유저의 QR 코드를 스캔해 주세요</p>
-            <QrCodeScanner bind:qrCodeScanner={qrCodeScanner} onScan={closeQrModal}/>
+            <div class="flex flex-col items-center justify-center h-full">
+                <p>토큰을 지급할 유저의 QR 코드를 스캔해 주세요</p>
+                <!--{#if isQrModalOpened}-->
+                <QrCodeScanner bind:qrCodeScanner={qrCodeScanner} onScan={takeToken} />
+                <!--{/if}-->
+            </div>
         </Modal>
     {:else}
         <p class="pb-5">대상에게서 토큰을 회수합니다</p>
@@ -113,8 +215,8 @@
             </TileGroup>
             {#if selected === products.sell.length}
                 <div class="mb-5">
-                    <NumberInput hideSteppers label="토큰 수" value={100} class="mb-5"/>
-                    <TextArea label="사유" placeholder="사유를 입력하세요" class="mb-5"/>
+                    <NumberInput hideSteppers label="토큰 수" value={100} class="mb-5" />
+                    <TextArea label="사유" placeholder="사유를 입력하세요" class="mb-5" />
                 </div>
             {/if}
         {/if}
@@ -128,8 +230,12 @@
                secondaryButtonText="취소"
                size="sm"
         >
-            <p>토큰을 회수 할 유저의 QR 코드를 스캔해 주세요</p>
-            <QrCodeScanner bind:qrCodeScanner={qrCodeScanner} onScan={closeQrModal}/>
+            <div class="flex flex-col items-center justify-center h-full">
+                <p>토큰을 회수할 유저의 QR 코드를 스캔해 주세요</p>
+                <!--{#if isQrModalOpened}-->
+                <QrCodeScanner bind:qrCodeScanner={qrCodeScanner} onScan={takeToken} />
+                <!--{/if}-->
+            </div>
         </Modal>
     {/if}
 </main>

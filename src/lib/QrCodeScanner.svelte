@@ -7,7 +7,9 @@
         start: () => {
         },
         stop: () => {
-        }
+        },
+        pause: () => {
+        },
     }
 
     onMount(async () => {
@@ -37,6 +39,10 @@
 
         qrCodeScanner.stop = async () => {
             await html5Qrcode.stop();
+        }
+
+        qrCodeScanner.pause = async () => {
+            await html5Qrcode.pause();
         }
 
         return () => {
