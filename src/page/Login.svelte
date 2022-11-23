@@ -7,7 +7,9 @@
 
     async function submit() {
         try {
-            await client.post("/register", {username: value});
+            const response = await client.post("/register", {username: value});
+
+            localStorage.setItem("userInfo", JSON.stringify(response.data));
 
             window.location.href = "/#";
         } catch (e) {

@@ -19,8 +19,6 @@
         try {
             if (!localStorage.getItem("userInfo")) {
                 window.location.href = "#/login";
-
-                localStorage.setItem("userInfo", JSON.stringify(registerInfo.data));
             } else {
                 const localUserInfo = JSON.parse(localStorage.getItem("userInfo")!);
                 const userInfoResponse = await client.get("/user?uuid=" + JSON.parse(localStorage.getItem("userInfo")!).uuid);
