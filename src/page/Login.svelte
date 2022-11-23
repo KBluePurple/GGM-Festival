@@ -2,16 +2,19 @@
     import {TextInput} from "carbon-components-svelte";
     import client from "../util/client";
 
+    export let params = {} as any;
+
     let value = "";
     let error = "";
+
+    console.log(params);
 
     async function submit() {
         try {
             const response = await client.post("/register", {username: value});
 
             localStorage.setItem("userInfo", JSON.stringify(response.data));
-
-            window.location.href = "/#";
+            window.location.href = "/#/" + params.redirect != null ? params.redirect : "";
         } catch (e) {
             error = e.message;
         }

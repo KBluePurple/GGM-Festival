@@ -13,7 +13,7 @@
 
     const routes = {
         '/': Main,
-        '/login': Login,
+        '/login/:redirect?': Login,
         '/manager': Manager,
     };
 </script>

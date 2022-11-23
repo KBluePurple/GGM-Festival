@@ -49,7 +49,7 @@
     async function loadData() {
         try {
             if (!localStorage.getItem("userInfo")) {
-                window.location.href = "#/login";
+                window.location.href = "#/login/manager";
             } else {
                 const localUserInfo = JSON.parse(localStorage.getItem("userInfo")!);
                 const userInfoResponse = await client.get("/user?uuid=" + JSON.parse(localStorage.getItem("userInfo")!).uuid);
@@ -69,7 +69,7 @@
             products = await Data.getProducts();
         } catch (e) {
             localStorage.removeItem("token");
-            window.location.href = "#/login";
+            window.location.href = "#/login/manager";
         }
     }
 
@@ -89,8 +89,7 @@
                 if (selected !== products.buy.length) {
                     amount = products.buy[selected].price;
                     reason = products.buy[selected].name;
-                }
-                else {
+                } else {
                     amount = customAmount;
                     reason = customReason;
                 }
@@ -104,9 +103,9 @@
 
                 toast.push("토큰 지급 성공", {
                     theme: {
-                        '--toastColor': 'mintcream',
-                        '--toastBackground': 'rgba(72,187,120,0.9)',
-                        '--toastBarBackground': '#2F855A'
+                        "--toastColor": "mintcream",
+                        "--toastBackground": "rgba(72,187,120,0.9)",
+                        "--toastBarBackground": "#2F855A"
                     }
                 });
             } else {
@@ -116,8 +115,7 @@
                 if (selected !== products.sell.length) {
                     amount = products.sell[selected].price;
                     reason = products.sell[selected].name;
-                }
-                else {
+                } else {
                     amount = customAmount;
                     reason = customReason;
                 }
@@ -131,19 +129,18 @@
 
                 toast.push("토큰 회수 성공", {
                     theme: {
-                        '--toastColor': 'mintcream',
-                        '--toastBackground': 'rgba(72,187,120,0.9)',
-                        '--toastBarBackground': '#2F855A'
+                        "--toastColor": "mintcream",
+                        "--toastBackground": "rgba(72,187,120,0.9)",
+                        "--toastBarBackground": "#2F855A"
                     }
                 });
             }
-        }
-        catch (e) {
+        } catch (e) {
             toast.push(e.message, {
                 theme: {
-                    '--toastBackground': 'rgba(255, 0, 0, 0.8)',
-                    '--toastColor': 'white',
-                    '--toastBarBackground': 'rgba(255, 0, 0, 0.8)',
+                    "--toastBackground": "rgba(255, 0, 0, 0.8)",
+                    "--toastColor": "white",
+                    "--toastBarBackground": "rgba(255, 0, 0, 0.8)"
                 }
             });
         }
@@ -158,97 +155,99 @@
 </svelte:head>
 
 <main>
-    <div class="flex items-center pb-5">
-        <h3 class="flex-1">관리자 페이지</h3>
-        <p class="text-sm flex-1 p-0 text-end">이름: {userInfo.username}</p>
-    </div>
-    <div id="switcher">
-        <ContentSwitcher bind:selectedIndex>
-            <Switch>
-                <div style="display: flex; align-items: center;">
-                    <div class="icon">
-                        <IoIosReturnRight />
+    {#if userInfo}
+        <div class="flex items-center pb-5">
+            <h3 class="flex-1">관리자 페이지</h3>
+            <p class="text-sm flex-1 p-0 text-end">이름: {userInfo.username}</p>
+        </div>
+        <div id="switcher">
+            <ContentSwitcher bind:selectedIndex>
+                <Switch>
+                    <div style="display: flex; align-items: center;">
+                        <div class="icon">
+                            <IoIosReturnRight />
+                        </div>
+                        지급
                     </div>
-                    지급
-                </div>
-            </Switch>
-            <Switch>
-                <div style="display: flex; align-items: center;">
-                    <div class="icon">
-                        <IoIosReturnLeft />
+                </Switch>
+                <Switch>
+                    <div style="display: flex; align-items: center;">
+                        <div class="icon">
+                            <IoIosReturnLeft />
+                        </div>
+                        회수
                     </div>
-                    회수
-                </div>
-            </Switch>
-        </ContentSwitcher>
-    </div>
+                </Switch>
+            </ContentSwitcher>
+        </div>
 
-    {#if selectedIndex === 0}
-        <p class="pb-5">대상에게 토큰을 지급합니다</p>
-        {#if products}
-            <TileGroup legend="빠른 선택" class="mb-5" bind:selected>
-                {#each products.buy as product, index}
-                    <RadioTile value={index}>{product.name} - {product.price}T</RadioTile>
-                {/each}
-                <RadioTile value="{products.buy.length}">사용자 지정</RadioTile>
-            </TileGroup>
-            {#if selected === products.buy.length}
-                <div class="mb-5">
-                    <NumberInput hideSteppers label="토큰 수" bind:value={customAmount} class="mb-5" />
-                    <TextArea label="사유" placeholder="사유를 입력하세요" bind:value={customReason} class="mb-5" />
-                </div>
+        {#if selectedIndex === 0}
+            <p class="pb-5">대상에게 토큰을 지급합니다</p>
+            {#if products}
+                <TileGroup legend="빠른 선택" class="mb-5" bind:selected>
+                    {#each products.buy as product, index}
+                        <RadioTile value={index}>{product.name} - {product.price}T</RadioTile>
+                    {/each}
+                    <RadioTile value="{products.buy.length}">사용자 지정</RadioTile>
+                </TileGroup>
+                {#if selected === products.buy.length}
+                    <div class="mb-5">
+                        <NumberInput hideSteppers label="토큰 수" bind:value={customAmount} class="mb-5" />
+                        <TextArea label="사유" placeholder="사유를 입력하세요" bind:value={customReason} class="mb-5" />
+                    </div>
+                {/if}
             {/if}
-        {/if}
-        <button class="btn" on:click={provisionToken}>토큰 지급</button>
-        <Modal passiveModal
-               bind:open={isQrModalOpened}
-               on:open={onOpen}
-               on:close={onClose}
-               on:submit={onSubmit}
-               modalHeading="토큰 지급"
-               secondaryButtonText="취소"
-               size="sm"
-        >
-            <div class="flex flex-col items-center justify-center h-full">
-                <p>토큰을 지급할 유저의 QR 코드를 스캔해 주세요</p>
-                <!--{#if isQrModalOpened}-->
-                <QrCodeScanner bind:qrCodeScanner={qrCodeScanner} onScan={takeToken} />
-                <!--{/if}-->
-            </div>
-        </Modal>
-    {:else}
-        <p class="pb-5">대상에게서 토큰을 회수합니다</p>
-        {#if products}
-            <TileGroup legend="빠른 선택" class="mb-5" bind:selected>
-                {#each products.sell as product, index}
-                    <RadioTile value={index}>{product.name} - {product.price}T</RadioTile>
-                {/each}
-                <RadioTile value="{products.sell.length}">사용자 지정</RadioTile>
-            </TileGroup>
-            {#if selected === products.sell.length}
-                <div class="mb-5">
-                    <NumberInput hideSteppers label="토큰 수" value={customAmount} class="mb-5" />
-                    <TextArea label="사유" placeholder="사유를 입력하세요" value={customReason} class="mb-5" />
+            <button class="btn" on:click={provisionToken}>토큰 지급</button>
+            <Modal passiveModal
+                   bind:open={isQrModalOpened}
+                   on:open={onOpen}
+                   on:close={onClose}
+                   on:submit={onSubmit}
+                   modalHeading="토큰 지급"
+                   secondaryButtonText="취소"
+                   size="sm"
+            >
+                <div class="flex flex-col items-center justify-center h-full">
+                    <p>토큰을 지급할 유저의 QR 코드를 스캔해 주세요</p>
+                    <!--{#if isQrModalOpened}-->
+                    <QrCodeScanner bind:qrCodeScanner={qrCodeScanner} onScan={takeToken} />
+                    <!--{/if}-->
                 </div>
+            </Modal>
+        {:else}
+            <p class="pb-5">대상에게서 토큰을 회수합니다</p>
+            {#if products}
+                <TileGroup legend="빠른 선택" class="mb-5" bind:selected>
+                    {#each products.sell as product, index}
+                        <RadioTile value={index}>{product.name} - {product.price}T</RadioTile>
+                    {/each}
+                    <RadioTile value="{products.sell.length}">사용자 지정</RadioTile>
+                </TileGroup>
+                {#if selected === products.sell.length}
+                    <div class="mb-5">
+                        <NumberInput hideSteppers label="토큰 수" value={customAmount} class="mb-5" />
+                        <TextArea label="사유" placeholder="사유를 입력하세요" value={customReason} class="mb-5" />
+                    </div>
+                {/if}
             {/if}
+            <button class="btn" on:click={provisionToken}>토큰 회수</button>
+            <Modal passiveModal
+                   bind:open={isQrModalOpened}
+                   on:open={onOpen}
+                   on:close={onClose}
+                   on:submit={onSubmit}
+                   modalHeading="토큰 회수"
+                   secondaryButtonText="취소"
+                   size="sm"
+            >
+                <div class="flex flex-col items-center justify-center h-full">
+                    <p>토큰을 회수할 유저의 QR 코드를 스캔해 주세요</p>
+                    <!--{#if isQrModalOpened}-->
+                    <QrCodeScanner bind:qrCodeScanner={qrCodeScanner} onScan={takeToken} />
+                    <!--{/if}-->
+                </div>
+            </Modal>
         {/if}
-        <button class="btn" on:click={provisionToken}>토큰 회수</button>
-        <Modal passiveModal
-               bind:open={isQrModalOpened}
-               on:open={onOpen}
-               on:close={onClose}
-               on:submit={onSubmit}
-               modalHeading="토큰 회수"
-               secondaryButtonText="취소"
-               size="sm"
-        >
-            <div class="flex flex-col items-center justify-center h-full">
-                <p>토큰을 회수할 유저의 QR 코드를 스캔해 주세요</p>
-                <!--{#if isQrModalOpened}-->
-                <QrCodeScanner bind:qrCodeScanner={qrCodeScanner} onScan={takeToken} />
-                <!--{/if}-->
-            </div>
-        </Modal>
     {/if}
 </main>
 
