@@ -1,7 +1,7 @@
 import axios, { type AxiosRequestConfig } from "axios";
 
 const axiosConfig: AxiosRequestConfig = {
-    baseURL: "http://127.0.0.1:8787/api/",
+    baseURL: "https://ggm-festival-worker.achromatic-dev.workers.dev/api",
     timeout: 1000,
     headers: {
         "Content-Type": "application/json",

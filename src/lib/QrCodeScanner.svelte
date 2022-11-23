@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onMount} from "svelte"
+    import {onMount, onDestroy} from "svelte";
     import {Html5Qrcode, Html5QrcodeScanner} from "html5-qrcode";
 
     export let onScan: (result: string) => void
@@ -22,13 +22,15 @@
             }
         });
 
-        let html5Qrcode = new Html5Qrcode("qr-reader");
+        let html5Qrcode: Html5Qrcode | undefined = undefined;
 
         async function onScanSuccess(qrCodeMessage: string) {
             onScan(qrCodeMessage)
         }
 
         qrCodeScanner.start = async () => {
+            console.log("start");
+            html5Qrcode = new Html5Qrcode("qr-reader");
             await html5Qrcode.start(
                 cameras[cameraId].id,
                 {fps: 10, qrbox: 200},
@@ -38,16 +40,18 @@
         }
 
         qrCodeScanner.stop = async () => {
-            await html5Qrcode.stop();
+            if (html5Qrcode) {
+                await html5Qrcode.stop();
+            }
         }
 
         qrCodeScanner.pause = async () => {
             await html5Qrcode.pause();
         }
+    });
 
-        return () => {
-            html5Qrcode.stop();
-        }
+    onDestroy(() => {
+        qrCodeScanner.stop();
     });
 </script>
 

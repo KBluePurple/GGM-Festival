@@ -1,0 +1,37 @@
+<script lang="ts">
+    import {TextInput} from "carbon-components-svelte";
+    import client from "../util/client";
+
+    let value = "";
+    let error = "";
+
+    async function submit() {
+        try {
+            await client.post("/register", {username: value});
+
+            window.location.href = "/#";
+        } catch (e) {
+            error = e.message;
+        }
+    }
+</script>
+
+<div class="p-5">
+    <TextInput bind:value placeholder="이름을 입력해 주세요"/>
+    <button class="btn mt-5" on:click={submit}>회원가입</button>
+    <p class="mt-5">{error}</p>
+</div>
+
+<style>
+    .btn {
+        background-color: rgba(0, 0, 0, 0);
+        border: 1px solid #ffffff;
+        width: 100%;
+        height: 50px;
+    }
+
+    .btn:focus, .btn:active {
+        background-color: #f4f4f4;
+        color: #000000;
+    }
+</style>

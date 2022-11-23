@@ -19,7 +19,6 @@
         try {
             if (!localStorage.getItem("userInfo")) {
                 window.location.href = "#/login";
-                let registerInfo = await client.post("/register", { username: "test" });
 
                 localStorage.setItem("userInfo", JSON.stringify(registerInfo.data));
             } else {
