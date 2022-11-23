@@ -50,8 +50,20 @@
         try {
             if (!localStorage.getItem("userInfo")) {
                 window.location.href = "#/login";
-                let registerInfo = await client.post("/register", {username: "test"});
-                localStorage.setItem("userInfo", JSON.stringify(registerInfo.data));
+            } else {
+                const localUserInfo = JSON.parse(localStorage.getItem("userInfo")!);
+                const userInfoResponse = await client.get("/user?uuid=" + JSON.parse(localStorage.getItem("userInfo")!).uuid);
+
+                if (userInfoResponse.data) {
+                    userInfo = {
+                        ...localUserInfo,
+                        ...userInfoResponse.data
+                    };
+                } else {
+                    userInfo = localUserInfo;
+                }
+
+                localStorage.setItem("userInfo", JSON.stringify(userInfo));
             }
 
             products = await Data.getProducts();
