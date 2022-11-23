@@ -215,8 +215,8 @@
             </TileGroup>
             {#if selected === products.sell.length}
                 <div class="mb-5">
-                    <NumberInput hideSteppers label="토큰 수" value={100} class="mb-5" />
-                    <TextArea label="사유" placeholder="사유를 입력하세요" class="mb-5" />
+                    <NumberInput hideSteppers label="토큰 수" value={customAmount} class="mb-5" />
+                    <TextArea label="사유" placeholder="사유를 입력하세요" value={customReason} class="mb-5" />
                 </div>
             {/if}
         {/if}

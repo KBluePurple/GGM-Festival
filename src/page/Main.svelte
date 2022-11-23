@@ -54,7 +54,7 @@
         const canvas = document.getElementById("qrcode");
         const userInfo = JSON.parse(localStorage.getItem("userInfo"));
         await QRCode.toCanvas(canvas, userInfo.uuid, {
-            width: 150,
+            width: 200,
             margin: 2,
             color: {
                 dark: "#1f1f1f",
