@@ -70,13 +70,13 @@
     });
 
     async function openRankingModal() {
-        await loadData();
         isRankingModalOpen = true;
+        await loadData();
     }
 
     async function openEventModal() {
-        await loadData();
         isEventModalOpen = true;
+        await loadData();
     }
 
     loadData();
