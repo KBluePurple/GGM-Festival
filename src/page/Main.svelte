@@ -35,13 +35,17 @@
                 localStorage.setItem("userInfo", JSON.stringify(userInfo));
             }
 
-            let response = await client.get("/events");
-            event = response.data;
+            try {
+                let response = await client.get("/ggm-events");
+                event = response.data;
 
-            response = await client.get("/rankings");
-            ranking = response.data;
+                response = await client.get("/rankings");
+                ranking = response.data;
+            } catch (e) {
+                console.error(e);
+            }
         } catch (e) {
-            localStorage.removeItem("token");
+            localStorage.removeItem("userInfo");
             window.location.href = "#/login";
         }
     }
